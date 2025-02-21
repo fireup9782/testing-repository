@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,21 +42,17 @@
 </head>
 <body>
     <h1>How long has Caleb been without a girlfriend?</h1>
-    <h1>starting from feb 20, 2025</h1>
+    <h1>Starting from Feb 20, 2025</h1>
     <div class="timer" id="timer"></div>
-    <div class="visitor-count">Total visitors: <span id="visitorCount">0</span></div>
-    
+    <div class="visitor-count">Total unique visitors: <span id="visitorCount">0</span></div>
+
     <script>
         function formatTime(value) {
             return value.toString().padStart(2, '0');
         }
 
         function updateTimer() {
-            let startTime = localStorage.getItem("startTime");
-            if (!startTime) {
-                startTime = Date.now();
-                localStorage.setItem("startTime", startTime);
-            }
+            let startTime = new Date('2025-02-20T00:00:00').getTime();
             let elapsed = Math.floor((Date.now() - startTime) / 1000);
             
             let weeks = Math.floor(elapsed / (7 * 24 * 60 * 60));
@@ -66,8 +61,7 @@
             let minutes = Math.floor((elapsed % (60 * 60)) / 60);
             let seconds = elapsed % 60;
             
-            const timerContainer = document.getElementById("timer");
-            timerContainer.innerHTML = `
+            document.getElementById("timer").innerHTML = `
                 <div class="time-box">${formatTime(weeks)}</div> :
                 <div class="time-box">${formatTime(days)}</div> :
                 <div class="time-box">${formatTime(hours)}</div> :
@@ -75,18 +69,40 @@
                 <div class="time-box">${formatTime(seconds)}</div>
             `;
         }
-        
+
         setInterval(updateTimer, 1000);
         updateTimer();
 
-        function updateVisitorCount(count) {
-            document.getElementById("visitorCount").textContent = count;
+        async function getUserIP() {
+            try {
+                let response = await fetch('https://api64.ipify.org?format=json');
+                let data = await response.json();
+                return data.ip;
+            } catch (error) {
+                console.error("Error fetching IP:", error);
+                return null;
+            }
         }
-        
-        let totalVisitors = parseInt(localStorage.getItem("totalVisitors")) || 0;
-        totalVisitors++;
-        localStorage.setItem("totalVisitors", totalVisitors);
-        updateVisitorCount(totalVisitors);
+
+        async function updateVisitorCount() {
+            let userIP = await getUserIP();
+            if (!userIP) return;
+
+            try {
+                let response = await fetch('/track-visitor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip: userIP })
+                });
+
+                let data = await response.json();
+                document.getElementById("visitorCount").textContent = data.uniqueVisitors;
+            } catch (error) {
+                console.error("Error updating visitor count:", error);
+            }
+        }
+
+        updateVisitorCount();
     </script>
 </body>
 </html>
