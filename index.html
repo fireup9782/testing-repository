@@ -20,71 +20,32 @@
             justify-content: center;
             gap: 10px;
         }
-        .time-box {
-            display: inline-block;
-            width: 80px;
-            height: 50px;
-            background: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-        .visitor-count {
+        #activeUsers, #winStreak {
             margin-top: 20px;
             font-size: 1.2rem;
-            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <h1>Caleb's Girlfriend Timer</h1>
     <div class="timer" id="timer"></div>
-    <div class="visitor-count">Total visitors: <span id="visitorCount">0</span></div>
-    
+    <div id="activeUsers">Active users: 0</div>
+    <div id="winStreak">Win streak: 0</div>
+
     <script>
-        function formatTime(value) {
-            return value.toString().padStart(2, '0');
-        }
+        let winStreak = 0;
+        let activeUsers = 0;
 
-        function updateTimer() {
-            let startTime = localStorage.getItem("startTime");
-            if (!startTime) {
-                startTime = Date.now();
-                localStorage.setItem("startTime", startTime);
-            }
-            let elapsed = Math.floor((Date.now() - startTime) / 1000);
-            
-            let weeks = Math.floor(elapsed / (7 * 24 * 60 * 60));
-            let days = Math.floor((elapsed % (7 * 24 * 60 * 60)) / (24 * 60 * 60));
-            let hours = Math.floor((elapsed % (24 * 60 * 60)) / (60 * 60));
-            let minutes = Math.floor((elapsed % (60 * 60)) / 60);
-            let seconds = elapsed % 60;
-            
-            const timerContainer = document.getElementById("timer");
-            timerContainer.innerHTML = `
-                <div class="time-box">${formatTime(weeks)}</div> :
-                <div class="time-box">${formatTime(days)}</div> :
-                <div class="time-box">${formatTime(hours)}</div> :
-                <div class="time-box">${formatTime(minutes)}</div> :
-                <div class="time-box">${formatTime(seconds)}</div>
-            `;
+        function updateActiveUsers() {
+            fetch("https://api.countapi.xyz/hit/caleb_gf_timer/visits")
+                .then(response => response.json())
+                .then(data => {
+                    activeUsers = data.value;
+                    document.getElementById("activeUsers").textContent = "Active users: " + activeUsers;
+                });
         }
-        
-        setInterval(updateTimer, 1000);
-        updateTimer();
-
-        function updateVisitorCount(count) {
-            document.getElementById("visitorCount").textContent = count;
-        }
-        
-        let totalVisitors = parseInt(localStorage.getItem("totalVisitors")) || 0;
-        totalVisitors++;
-        localStorage.setItem("totalVisitors", totalVisitors);
-        updateVisitorCount(totalVisitors);
+        setInterval(updateActiveUsers, 1000);
+        updateActiveUsers();
     </script>
 </body>
 </html>
